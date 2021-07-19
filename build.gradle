@@ -1,0 +1,31 @@
+plugins {
+	id 'org.springframework.boot' version '2.5.2'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+	id 'eclipse'
+}
+
+group = 'com.hmiraval.integration.mq'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-integration'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.integration:spring-integration-http'
+	implementation group: 'com.ibm.mq', name: 'com.ibm.mq.allclient', version: '9.1.5.0'
+	implementation group: 'javax.jms', name: 'javax.jms-api', version: '2.0.1'
+	implementation group: 'com.ibm.mq', name: 'mq-jms-spring-boot-starter', version: '2.3.0'
+	implementation group: 'org.springframework.integration', name: 'spring-integration-jms', version: '5.4.4'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.integration:spring-integration-test'
+}
+
+test {
+	useJUnitPlatform()
+}

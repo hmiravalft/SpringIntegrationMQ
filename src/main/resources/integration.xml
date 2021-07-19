@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:int="http://www.springframework.org/schema/integration"
+        xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/integration
+            http://www.springframework.org/schema/integration/spring-integration.xsd
+            http://www.springframework.org/schema/integration/jms
+            http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+
+        <context:annotation-config />
+        <context:component-scan base-package="com.hmiraval.integration.mq" />
+
+     
+       <bean id="ibmMqConnFactory"
+          class="org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter">
+        <property name="targetConnectionFactory">
+            <bean class="com.ibm.mq.jms.MQQueueConnectionFactory">
+                <property name="transportType" ref="1"/>
+                <property name="queueManager" value="${project.mq.queue-manager}"/>
+                <property name="hostName" value="${project.mq.host}"/>
+                <property name="port" value="${project.mq.port}"/>
+                <property name="channel" value="${project.mq.channel}"/>
+                <property name="CCSID" value="${app.mq.ccsid}"/>
+            </bean>
+        </property>
+        <property name="username" value="${project.mq.username}"/>
+        <property name="password" value="${project.mq.password}"/>
+       </bean>
+
+        <!-- Queue Definition -->
+        <bean id="inQueue" class="com.ibm.mq.jms.MQQueue" depends-on="connectionFactory">
+            <constructor-arg index="0" value="${project.mq.queue-manager}" />
+            <constructor-arg index="1" value="${project.mq.req.queue}" />
+        </bean>
+
+        <bean id="outQueue" class="com.ibm.mq.jms.MQQueue" depends-on="connectionFactory">
+            <constructor-arg index="0" value="${project.mq.queue-manager}" />
+            <constructor-arg index="1" value="${project.mq.res.queue}" />
+        </bean>
+
+        <bean id="messageListener" class="com.hmiraval.integration.mq.MessageListener"/>
+        <bean id="messagePublisher" class="com.hmiraval.integration.mq.MessagePublisher"/>
+
+        <!-- OUTBOUND settings -->
+
+        <int:channel id="senderChannel" />
+
+        <int-jms:outbound-channel-adapter id="jmsOut" destination="outQueue" channel="senderChannel"/>
+
+       <!--  <int:service-activator output-channel="senderChannel" ref="messagePublisher" method="processMessage" /> -->
+
+        <!-- INBOUND settings -->
+
+        <int:channel id="recieverChannel" />    
+
+        <int-jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" channel="recieverChannel" extract-payload="false" />
+
+        <int:service-activator input-channel="recieverChannel" ref="messageListener" method="processMessage" />
+
+    </beans>
